@@ -1,6 +1,6 @@
 package com.musalasoft.drones.service;
 
-import com.musalasoft.drones.exception.ServiceException;
+import com.musalasoft.drones.exception.NotFoundException;
 import com.musalasoft.drones.model.Drone;
 import com.musalasoft.drones.model.Enum.DroneState;
 import com.musalasoft.drones.model.Medication;
@@ -82,7 +82,7 @@ public class DroneService {
         var optDrone = droneRepository.findById(serialNumber);
         if (optDrone.isEmpty()) {
             LOGGER.error("The Drone {} doesn't exist!", serialNumber);
-            throw new ServiceException("The Drone " + serialNumber + " doesn't exist!");
+            throw new NotFoundException("The Drone " + serialNumber + " doesn't exist!");
         }
         return optDrone.get();
     }

@@ -1,10 +1,8 @@
 package com.musalasoft.drones.service;
 
-import com.musalasoft.drones.exception.ServiceException;
+import com.musalasoft.drones.exception.NotFoundException;
 import com.musalasoft.drones.model.Drone;
 import com.musalasoft.drones.model.Enum.DroneState;
-import com.musalasoft.drones.model.Enum.DroneType;
-import com.musalasoft.drones.model.Medication;
 import com.musalasoft.drones.repository.DroneRepository;
 import com.musalasoft.drones.repository.MedicationRepository;
 import org.junit.jupiter.api.Test;
@@ -16,9 +14,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static com.musalasoft.drones.Utils.createMedication;
 import static com.musalasoft.drones.model.Enum.DroneState.LOADED;
+import static com.musalasoft.drones.model.Enum.DroneType.Lightweight;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +34,7 @@ class DroneServiceTest {
     private MedicationRepository medicationRepository;
 
     @InjectMocks
-    private DroneService droneService;
+    private DroneService service;
 
     @Test
     void shouldRegisterADrone() {
@@ -43,7 +42,7 @@ class DroneServiceTest {
 
         when(droneRepository.save(any())).thenReturn(drone);
 
-        var createdDrone = droneService.registerDrone(drone);
+        var createdDrone = service.registerDrone(drone);
 
         assertThat(createdDrone)
                 .usingRecursiveComparison()
@@ -52,7 +51,7 @@ class DroneServiceTest {
 
     @Test
     void shouldThrowAnExceptionRegisteringADroneWhenDroneIsEmpty() {
-        assertThatThrownBy(() -> droneService.registerDrone(null))
+        assertThatThrownBy(() -> service.registerDrone(null))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("An empty drone can't be save");
     }
@@ -60,7 +59,7 @@ class DroneServiceTest {
     @Test
     void shouldThrowAnExceptionRegisteringADroneWhenSerialNumberIsNull() {
         var drone = new Drone();
-        assertThatThrownBy(() -> droneService.registerDrone(drone))
+        assertThatThrownBy(() -> service.registerDrone(drone))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessage("SerialNumber is required to register a Drone.");
     }
@@ -69,7 +68,7 @@ class DroneServiceTest {
     void shouldThrowAnExceptionRegisteringADroneWhenSerialNumberIsEmpty() {
         var drone = new Drone();
         drone.setSerialNumber("");
-        assertThatThrownBy(() -> droneService.registerDrone(drone))
+        assertThatThrownBy(() -> service.registerDrone(drone))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("SerialNumber can't be empty.");
     }
@@ -86,7 +85,7 @@ class DroneServiceTest {
         drone.setState(LOADED);
         when(droneRepository.save(drone)).thenReturn(drone);
 
-        var loadedDrone = droneService.loadDrone(SERIAL_NUMBER, List.of(1L, 2L));
+        var loadedDrone = service.loadDrone(SERIAL_NUMBER, List.of(1L, 2L));
 
         assertThat(loadedDrone)
                 .hasFieldOrPropertyWithValue("weight", totalWeight)
@@ -103,7 +102,7 @@ class DroneServiceTest {
         drone.setState(LOADED);
         when(droneRepository.save(drone)).thenReturn(drone);
 
-        var loadedDrone = droneService.loadDrone(SERIAL_NUMBER, List.of(1L, 2L));
+        var loadedDrone = service.loadDrone(SERIAL_NUMBER, List.of(1L, 2L));
 
         assertThat(loadedDrone)
                 .hasFieldOrPropertyWithValue("weight", drone.getWeight())
@@ -123,7 +122,7 @@ class DroneServiceTest {
         drone.setState(LOADED);
         when(droneRepository.save(drone)).thenReturn(drone);
 
-        var loadedDrone = droneService.loadDrone(SERIAL_NUMBER, List.of(1L, 2L));
+        var loadedDrone = service.loadDrone(SERIAL_NUMBER, List.of(1L, 2L));
 
         assertThat(loadedDrone)
                 .hasFieldOrPropertyWithValue("weight", drone.getWeight())
@@ -140,7 +139,7 @@ class DroneServiceTest {
         drone.addMedication(medication2);
         when(droneRepository.findById(SERIAL_NUMBER)).thenReturn(Optional.of(drone));
 
-        var medications = droneService.loadedMedications(SERIAL_NUMBER);
+        var medications = service.loadedMedications(SERIAL_NUMBER);
 
         assertThat(medications)
                 .isNotEmpty()
@@ -151,8 +150,8 @@ class DroneServiceTest {
     void shouldThrowAnExceptionWhenDroneDoesNotExistLoadingMedications() {
         when(droneRepository.findById(SERIAL_NUMBER)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> droneService.loadedMedications(SERIAL_NUMBER))
-                .isInstanceOf(ServiceException.class)
+        assertThatThrownBy(() -> service.loadedMedications(SERIAL_NUMBER))
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage("The Drone " + SERIAL_NUMBER + " doesn't exist!");
     }
 
@@ -161,7 +160,7 @@ class DroneServiceTest {
         var drone = createDrone();
         when(droneRepository.findByWeightIsLessThan(anyInt())).thenReturn(List.of(drone));
 
-        var drones = droneService.availableDronesToBeLoaded();
+        var drones = service.availableDronesToBeLoaded();
 
         assertThat(drones)
                 .isNotEmpty()
@@ -173,7 +172,7 @@ class DroneServiceTest {
         var drone = createDrone();
         when(droneRepository.findById(SERIAL_NUMBER)).thenReturn(Optional.of(drone));
 
-        var batteryLevel = droneService.droneBatteryLevel(SERIAL_NUMBER);
+        var batteryLevel = service.droneBatteryLevel(SERIAL_NUMBER);
 
         assertThat(batteryLevel)
                 .isEqualTo(drone.getBattery());
@@ -183,17 +182,13 @@ class DroneServiceTest {
     void shouldThrowAnExceptionWhenDroneDoesNotExistCheckingTheBatteryLevel() {
         when(droneRepository.findById(SERIAL_NUMBER)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> droneService.droneBatteryLevel(SERIAL_NUMBER))
-                .isInstanceOf(ServiceException.class)
+        assertThatThrownBy(() -> service.droneBatteryLevel(SERIAL_NUMBER))
+                .isInstanceOf(NotFoundException.class)
                 .hasMessage("The Drone " + SERIAL_NUMBER + " doesn't exist!");
     }
 
     private Drone createDrone() {
-        return new Drone(SERIAL_NUMBER, DroneType.LIGHTWEIGHT, 50, 100, null, new ArrayList<>());
-    }
-
-    private Medication createMedication(long id, String name, int weight) {
-        return new Medication(id, name, weight, UUID.randomUUID().toString(), new byte[0]);
+        return new Drone(SERIAL_NUMBER, Lightweight, 50, 100, null, new ArrayList<>());
     }
 
 }

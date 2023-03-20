@@ -5,6 +5,7 @@ public enum DroneState {
     IDLE,
     LOADING,
     LOADED,
+    NEEDS_TO_BE_CHARGED,
     DELIVERING,
     DELIVERED,
     RETURNING

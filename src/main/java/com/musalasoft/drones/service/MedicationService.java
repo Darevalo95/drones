@@ -24,6 +24,7 @@ public class MedicationService {
     }
 
     public Medication getOneById(long id) {
+        LOGGER.info("Looking for a medication with the id: {}", id);
         var optMedication = repository.findById(id);
         if (optMedication.isEmpty()) {
             LOGGER.error("The Medication with Id {} doesn't exist!", id);
@@ -34,6 +35,7 @@ public class MedicationService {
 
     public Medication update(Medication medication) {
         var id = medication.getId();
+        LOGGER.info("Updating the a medication with the next values: {}", medication);
         var optMedication = repository.findById(id);
         if (optMedication.isEmpty()) {
             LOGGER.error("The Medication with Id {} doesn't exist!", id);
@@ -47,10 +49,12 @@ public class MedicationService {
     }
 
     public Medication save(Medication medication) {
+        LOGGER.info("Creating a new medication with the next values: {}", medication);
         return repository.save(medication);
     }
 
     public void delete(long id) {
+        LOGGER.info("Deleting the medication with the id: {}", id);
         var optMedication = repository.findById(id);
         if (optMedication.isEmpty()) {
             LOGGER.error("The Medication with Id {} doesn't exist!", id);

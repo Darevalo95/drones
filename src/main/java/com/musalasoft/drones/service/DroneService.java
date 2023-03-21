@@ -41,6 +41,7 @@ public class DroneService {
         if (StringUtils.isEmpty(drone.getSerialNumber())) {
             throw new IllegalArgumentException("SerialNumber can't be empty.");
         }
+        LOGGER.info("Registering a new drone with Serial Number: {}", drone.getSerialNumber());
         return changeState(drone, IDLE);
     }
 
@@ -50,11 +51,13 @@ public class DroneService {
             LOGGER.warn("Medications can't be loaded because the battery level of the drone is {}, please charge it!", drone.getBattery());
             return changeState(drone, NEEDS_TO_BE_CHARGED);
         }
+        LOGGER.info("Loading medications to the drone: {}", drone.getSerialNumber());
         drone = changeState(drone, LOADING);
         var medications = medicationRepository.findAllById(medicationIds);
         for (Medication medication : medications) {
             var totalWeight = drone.getWeight() + medication.getWeight();
             if (totalWeight <= DRONE_WEIGHT_LIMIT) {
+                LOGGER.info("{} medication added to the drone: {}", medication.getName(), drone.getSerialNumber());
                 drone.addMedication(medication);
             } else {
                 LOGGER.warn("{} couldn't be loaded because it exceeded the available weight ({}gr) of the drone: {}", medication.getName(), DRONE_WEIGHT_LIMIT - drone.getWeight(), drone.getSerialNumber());
@@ -65,10 +68,12 @@ public class DroneService {
 
     public List<Medication> loadedMedications(String serialNumber) {
         var drone = doesDroneExist(serialNumber);
+        LOGGER.info("Obtaining loaded medications to the drone: {}", serialNumber);
         return drone.getMedications();
     }
 
     public List<Drone> availableDronesToBeLoaded() {
+        LOGGER.info("Obtaining drones that can carry more medications");
         return droneRepository.findByWeightIsLessThan(DRONE_WEIGHT_LIMIT);
     }
 

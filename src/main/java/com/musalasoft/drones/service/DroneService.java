@@ -52,7 +52,7 @@ public class DroneService {
     public Drone loadDrone(String serialNumber, List<Long> medicationIds) {
         var drone = doesDroneExist(serialNumber);
         if (drone.getBattery() < DRONE_BATTERY_LIMIT) {
-            LOGGER.warn("Medications can't be loaded because the battery level of the drone is {}, please charge it!", drone.getBattery());
+            LOGGER.warn("Medications can't be loaded because the battery level of the drone is {}%, please charge it!", drone.getBattery());
             return changeState(drone, NEEDS_TO_BE_CHARGED);
         }
         LOGGER.info("Loading medications to the drone: {}", drone.getSerialNumber());

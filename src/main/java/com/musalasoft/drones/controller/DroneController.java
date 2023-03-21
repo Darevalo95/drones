@@ -4,6 +4,7 @@ import com.musalasoft.drones.exception.NotFoundException;
 import com.musalasoft.drones.model.Drone;
 import com.musalasoft.drones.model.Medication;
 import com.musalasoft.drones.service.DroneService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ public class DroneController {
 
     private final DroneService service;
 
+    @Autowired
     public DroneController(DroneService droneService) {
         this.service = droneService;
     }

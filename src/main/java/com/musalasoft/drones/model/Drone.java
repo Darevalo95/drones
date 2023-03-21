@@ -46,4 +46,11 @@ public class Drone {
         this.weight += medication.getWeight();
     }
 
+    public void setBattery(int battery) {
+        if (battery > 100) {
+            throw new IllegalArgumentException("Battery value is a percentage, can't be more than 100%");
+        }
+        this.battery = battery;
+    }
+
 }

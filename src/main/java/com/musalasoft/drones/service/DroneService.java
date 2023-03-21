@@ -78,6 +78,11 @@ public class DroneService {
         return drone.getBattery();
     }
 
+    public List<Drone> dronesThatNeedEnergy() {
+        LOGGER.info("Obtaining drones that has the battery less than: {}", DRONE_BATTERY_LIMIT);
+        return droneRepository.findByBatteryLessThanEqual(DRONE_BATTERY_LIMIT);
+    }
+
     private Drone doesDroneExist(String serialNumber) {
         var optDrone = droneRepository.findById(serialNumber);
         if (optDrone.isEmpty()) {

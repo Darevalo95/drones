@@ -3,6 +3,7 @@ package com.musalasoft.drones.controller;
 import com.musalasoft.drones.exception.NotFoundException;
 import com.musalasoft.drones.model.Medication;
 import com.musalasoft.drones.service.MedicationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,6 +24,7 @@ public class MedicationController {
 
     private final MedicationService service;
 
+    @Autowired
     public MedicationController(MedicationService medicationService) {
         this.service = medicationService;
     }

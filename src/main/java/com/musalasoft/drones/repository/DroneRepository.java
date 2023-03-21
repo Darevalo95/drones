@@ -10,5 +10,6 @@ import java.util.List;
 public interface DroneRepository extends JpaRepository<Drone, String> {
 
     List<Drone> findByWeightIsLessThan(int weight);
+    List<Drone> findByBatteryLessThanEqual(int batteryLimit);
 
 }

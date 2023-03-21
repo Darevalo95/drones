@@ -11,13 +11,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.musalasoft.drones.Utils.createDrone;
 import static com.musalasoft.drones.Utils.createMedication;
 import static com.musalasoft.drones.model.Enum.DroneState.LOADED;
-import static com.musalasoft.drones.model.Enum.DroneType.Lightweight;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +37,7 @@ class DroneServiceTest {
 
     @Test
     void shouldRegisterADrone() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
 
         when(droneRepository.save(any())).thenReturn(drone);
 
@@ -75,7 +74,7 @@ class DroneServiceTest {
 
     @Test
     void shouldLoadMedicationsInTheDrone() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
         var medication1 = createMedication(1, "medication1", 50);
         var medication2 = createMedication(2, "medication2", 70);
         var totalWeight = drone.getWeight() + medication1.getWeight() + medication2.getWeight();
@@ -95,7 +94,7 @@ class DroneServiceTest {
 
     @Test
     void shouldNotLoadMedicationsInTheDroneWhenBatteryIsLessThan25() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
         drone.setBattery(15);
 
         when(droneRepository.findById(SERIAL_NUMBER)).thenReturn(Optional.of(drone));
@@ -112,7 +111,7 @@ class DroneServiceTest {
 
     @Test
     void shouldNotLoadMedicationsInTheDroneWhenMedicationWeighIsHigherThanAvailable() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
         drone.setWeight(470);
         var medication1 = createMedication(1, "medication1", 50);
         var medication2 = createMedication(2, "medication2", 70);
@@ -132,7 +131,7 @@ class DroneServiceTest {
 
     @Test
     void shouldReturnLoadedMedicationsOfADrone() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
         var medication1 = createMedication(1, "medication1", 50);
         var medication2 = createMedication(2, "medication2", 70);
         drone.addMedication(medication1);
@@ -157,7 +156,7 @@ class DroneServiceTest {
 
     @Test
     void shouldReturnAvailableDronesToBeLoaded() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
         when(droneRepository.findByWeightIsLessThan(anyInt())).thenReturn(List.of(drone));
 
         var drones = service.availableDronesToBeLoaded();
@@ -169,7 +168,7 @@ class DroneServiceTest {
 
     @Test
     void shouldReturnDroneBatteryPercentage() {
-        var drone = createDrone();
+        var drone = createDrone(SERIAL_NUMBER, 100);
         when(droneRepository.findById(SERIAL_NUMBER)).thenReturn(Optional.of(drone));
 
         var batteryLevel = service.droneBatteryLevel(SERIAL_NUMBER);
@@ -187,8 +186,16 @@ class DroneServiceTest {
                 .hasMessage("The Drone " + SERIAL_NUMBER + " doesn't exist!");
     }
 
-    private Drone createDrone() {
-        return new Drone(SERIAL_NUMBER, Lightweight, 50, 100, null, new ArrayList<>());
+    @Test
+    void shouldReturnDronesThatNeedsToBeCharged() {
+        var drone = createDrone(SERIAL_NUMBER, 15);
+        when(droneRepository.findByBatteryLessThanEqual(anyInt())).thenReturn(List.of(drone));
+
+        var drones = service.dronesThatNeedEnergy();
+
+        assertThat(drones)
+                .isNotEmpty()
+                .hasSameElementsAs(List.of(drone));
     }
 
 }

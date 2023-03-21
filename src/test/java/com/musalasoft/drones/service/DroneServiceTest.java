@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,27 +51,42 @@ class DroneServiceTest {
     }
 
     @Test
+    void shouldNotRegisterAnExistingDrone() {
+        var drone = createDrone(SERIAL_NUMBER, 100);
+
+        when(droneRepository.findById(any())).thenReturn(Optional.of(drone));
+
+        var createdDrone = service.registerDrone(drone);
+
+        verify(droneRepository, never()).save(any());
+
+        assertThat(createdDrone)
+                .usingRecursiveComparison()
+                .isEqualTo(drone);
+    }
+
+    @Test
     void shouldThrowAnExceptionRegisteringADroneWhenDroneIsEmpty() {
         assertThatThrownBy(() -> service.registerDrone(null))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessage("An empty drone can't be save");
+                .hasMessage("The Drone can't be save because is Null");
     }
 
     @Test
     void shouldThrowAnExceptionRegisteringADroneWhenSerialNumberIsNull() {
         var drone = new Drone();
         assertThatThrownBy(() -> service.registerDrone(drone))
-                .isInstanceOf(NullPointerException.class)
+                .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("SerialNumber is required to register a Drone.");
     }
 
     @Test
     void shouldThrowAnExceptionRegisteringADroneWhenSerialNumberIsEmpty() {
         var drone = new Drone();
-        drone.setSerialNumber("");
+        drone.setSerialNumber(" ");
         assertThatThrownBy(() -> service.registerDrone(drone))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("SerialNumber can't be empty.");
+                .hasMessage("SerialNumber is required to register a Drone.");
     }
 
     @Test

@@ -24,8 +24,8 @@ import static java.lang.Boolean.FALSE;
 @Service
 public class DroneService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DroneService.class);
-    private static final int DRONE_WEIGHT_LIMIT = 500;
-    private static final int DRONE_BATTERY_LIMIT = 25;
+    public static final int DRONE_WEIGHT_LIMIT = 500;
+    public static final int DRONE_BATTERY_LIMIT = 25;
 
     private final DroneRepository droneRepository;
     private final MedicationRepository medicationRepository;
@@ -36,12 +36,16 @@ public class DroneService {
     }
 
     public Drone registerDrone(Drone drone) {
-        Objects.requireNonNull(drone, "An empty drone can't be save");
-        Objects.requireNonNull(drone.getSerialNumber(), "SerialNumber is required to register a Drone.");
-        if (StringUtils.isEmpty(drone.getSerialNumber())) {
-            throw new IllegalArgumentException("SerialNumber can't be empty.");
+        Objects.requireNonNull(drone, "The Drone can't be save because is Null");
+        if (StringUtils.isBlank(drone.getSerialNumber())) {
+            throw new IllegalArgumentException("SerialNumber is required to register a Drone.");
         }
         LOGGER.info("Registering a new drone with Serial Number: {}", drone.getSerialNumber());
+        var existedDrone = droneRepository.findById(drone.getSerialNumber());
+        if (existedDrone.isPresent()) {
+            LOGGER.info("The drone {} already exist!", existedDrone.get().getSerialNumber());
+            return existedDrone.get();
+        }
         return changeState(drone, IDLE);
     }
 

@@ -4,6 +4,7 @@ import com.musalasoft.drones.model.Enum.DroneState;
 import com.musalasoft.drones.model.Enum.DroneType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -33,7 +34,7 @@ public class Drone {
     private int battery;
     @Column(name = "state")
     private DroneState state;
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "medications_drones",
             joinColumns = @JoinColumn(name = "serialNumber"),

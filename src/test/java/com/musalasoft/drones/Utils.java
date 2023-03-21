@@ -15,7 +15,7 @@ public class Utils {
     }
 
     public static Drone createDrone(String serialNumber, int battery) {
-        return new Drone(serialNumber, Lightweight, 50, battery, null, new ArrayList<>());
+        return new Drone(serialNumber, Lightweight, 80, battery, null, new ArrayList<>());
     }
 
     public static Medication createMedication(long id, String name, int weight) {
